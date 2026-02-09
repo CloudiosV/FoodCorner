@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  products Product[]
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  category Category @relation(fields: [category_id], references: [id])
+  category_id Int
+  name      String
+  price     Float
+  detail_sales DetailSales[]
+}
+
+model Sales {
+  id Int @id @default(autoincrement())
+  total_price Float
+  discount Float
+  final_price Float
+  created_at DateTime @default(now())
+  detail_sales DetailSales[]
+}
+
+model DetailSales {
+  id Int @id @default(autoincrement())
+  sales Sales @relation(fields: [sales_id], references: [id])
+  sales_id Int
+  product Product @relation(fields: [product_id], references: [id])
+  product_id Int
+  qty Int
+  price Float
+  subtotal Float
+}
+
+model Promo {
+  id Int @id @default(autoincrement())
+  name String
+  discount Float
+}
