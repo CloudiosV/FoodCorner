@@ -7,13 +7,26 @@ import UpdateProduct from "./updateProduct";
 
 // const prisma = new PrismaClient();
 
-const getProducts = async () => {
+const getProducts = async (search?: string) => {
   return await prisma.product.findMany({
+    where: search? {
+      name: {
+        contains: search,
+        mode: "insensitive"
+      }
+    } :undefined,
+
     select: {
       id: true,
       name: true,
       price: true,
-      category_id: true
+      category_id: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        }
+      }
     },
   })
 }
@@ -22,10 +35,13 @@ const getCategory = async () => {
   return await prisma.category.findMany();
 }
 
-const Product = async () => {
+const Product = async ({searchParams}: {searchParams?: Promise<{ search?: string }>}) => {
+  const params = await searchParams;
+  const search = params?.search ?? "";
+
   const [products, categories] = await Promise.all([
-    getProducts(),
-    getCategory()
+    getProducts(search),
+    getCategory(),
   ]);
 
   return (
@@ -34,12 +50,17 @@ const Product = async () => {
         <AddProduct categories={categories}/>
       </div>
 
+      <form className="mb-3" method="GET">
+        <input type="text" name="search" defaultValue={search} placeholder="Search Product..." className="border px-3 py-2 rounded w-64"/> 
+      </form>
+
       <table className="w-full border border-gray-300 border-collapse">
         <thead className="">
           <tr>
             <th className="border px-3 py-2 text-left">ID</th>
             <th className="border px-3 py-2 text-left">Name</th>
             <th className="border px-3 py-2 text-left">Price</th>
+            <th className="border px-3 py-2 text-left">Category</th>
             <th className="border px-3 py-2 text-center">Action</th>
           </tr>
         </thead>
@@ -49,7 +70,8 @@ const Product = async () => {
               <td className="border px-3 py-2">{index + 1}</td>
               <td className="border px-3 py-2">{product.name}</td>
               <td className="border px-3 py-2">{product.price}</td>
-              <td className="border px-3 py-2 text-center">
+              <td className="border px-3 py-2">{product.category.name}</td>
+              <td className="border px-3 py-2 text-center flex gap-2 justify-center">
                 <UpdateProduct categories={categories} product={product}/>
                 <DeleteProduct product={product}/>
               </td>
