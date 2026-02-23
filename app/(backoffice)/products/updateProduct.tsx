@@ -15,16 +15,24 @@ const UpdateProduct = ({categories, product}: {categories: Category[]; product: 
     const [name, setName] = useState(product.name);
     const [price, setPrice] = useState(product.price);
     const [category, setCategory] = useState(product.category_id);
+    const [image, setImage] = useState<File | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
     const route = useRouter();
 
     const handleUpdate = async (e: SyntheticEvent) => {
         e.preventDefault();
-        await axios.patch(`/api/products/${product.id}`, {
-            name: name,
-            price: Number(price),
-            category_id: Number(category)
+        
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("price", String(price));
+        formData.append("category_id", String(category));
+        if(image) {
+          formData.append("image", image);
+        }
+
+        await axios.patch(`/api/products/${product.id}`, formData, {
+            headers: {"Content-Type": "multipart/form-data"}
         });
         route.refresh();
         setIsOpen(false);
@@ -62,6 +70,11 @@ const UpdateProduct = ({categories, product}: {categories: Category[]; product: 
                     <option value={category.id} key={category.id}>{category.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="block font-bold mb-1">Image</label>
+                <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="w-full"/>
               </div>
 
               <div className="flex justify-end gap-2">
