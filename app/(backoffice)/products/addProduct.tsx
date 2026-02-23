@@ -8,20 +8,29 @@ const AddProduct = ({categories}: {categories: Category[]}) => {
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [category, setCategory] = useState("");
+    const [image, setImage] = useState<File | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
     const route = useRouter();
 
     const handleSubmit = async (e: SyntheticEvent) => {
         e.preventDefault();
-        await axios.post('/api/products', {
-            name: name,
-            price: Number(price),
-            category_id: Number(category)
-        })
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("price", price);
+        formData.append("category_id", category);
+        if(image) {
+          formData.append("image", image);
+        }
+
+        await axios.post('/api/products', formData, {
+          headers: {"Content-Type": "multipart/form-data"}
+        });
+
         setName("");
         setPrice("");
         setCategory("");
+        setImage(null);
         route.refresh();
         setIsOpen(false);
     }
@@ -61,6 +70,11 @@ const AddProduct = ({categories}: {categories: Category[]}) => {
                     <option value={category.id} key={category.id}>{category.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-bold mb-1">Image</label>
+                <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="w-full"/>
               </div>
 
               <div className="flex justify-end gap-2">

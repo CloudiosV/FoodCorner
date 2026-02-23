@@ -21,6 +21,7 @@ const getProducts = async (search?: string) => {
       name: true,
       price: true,
       category_id: true,
+      image: true,
       category: {
         select: {
           id: true,
@@ -61,6 +62,7 @@ const Product = async ({searchParams}: {searchParams?: Promise<{ search?: string
             <th className="border px-3 py-2 text-left">Name</th>
             <th className="border px-3 py-2 text-left">Price</th>
             <th className="border px-3 py-2 text-left">Category</th>
+            <th className="border px-3 py-2 text-left">Image</th>
             <th className="border px-3 py-2 text-center">Action</th>
           </tr>
         </thead>
@@ -71,6 +73,11 @@ const Product = async ({searchParams}: {searchParams?: Promise<{ search?: string
               <td className="border px-3 py-2">{product.name}</td>
               <td className="border px-3 py-2">{product.price}</td>
               <td className="border px-3 py-2">{product.category.name}</td>
+              <td className="border px-3 py-2">
+                {product.image && (
+                  <img src={`/uploads/${product.image}`} alt={product.name} className="w-16   h-16 object-cover rounded"/>
+                )}
+              </td>
               <td className="border px-3 py-2 text-center flex gap-2 justify-center">
                 <UpdateProduct categories={categories} product={product}/>
                 <DeleteProduct product={product}/>
