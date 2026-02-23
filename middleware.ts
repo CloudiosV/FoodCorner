@@ -6,5 +6,6 @@ export const config = {
     "/products/:path*",
     "/category/:path*",
     "/promo/:path*",
+    "/orders/:path*",
   ],
 };
