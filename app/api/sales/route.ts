@@ -12,11 +12,18 @@ export const POST = async (request: Request) => {
 
     try {
         const result = await prisma.$transaction(async (tx) => {
+            const lastSale = await tx.sales.findFirst({
+                orderBy: {queue_number: "desc"}
+            });
+
+            const nextQueue = lastSale? lastSale.queue_number + 1 : 1;
+
             const sale = await tx.sales.create({
                 data: {
                     total_price: subtotal,
                     discount: discount,
-                    final_price: final_price
+                    final_price: final_price,
+                    queue_number: nextQueue
                 }
             });
 
