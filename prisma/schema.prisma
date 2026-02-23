@@ -18,15 +18,18 @@ model Product {
   category_id Int
   name      String
   price     Float
+  image String?
   detail_sales DetailSales[]
 }
 
 model Sales {
   id Int @id @default(autoincrement())
+  queue_number Int
   total_price Float
   discount Float
   final_price Float
   created_at DateTime @default(now())
+  status String @default("pending")
   detail_sales DetailSales[]
 }
 
