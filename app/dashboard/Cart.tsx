@@ -19,6 +19,7 @@ export default function Cart() {
   const [products, setProducts] = useState<Product[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [selectedPromo, setSelectedPromo] = useState<number>(0);
+  const [showPopup, setShowPopup] = useState(false);
 
   const fetchCart = async () => {
     const storedCart = JSON.parse(localStorage.getItem('Cart') ?? '[]');
@@ -34,13 +35,13 @@ export default function Cart() {
     } else {
       setProducts([])
     }
-
   }
 
   const removeCart = () => {
     localStorage.removeItem('Cart');
     setCart([]);
     setProducts([]);
+    setShowPopup(false);
   } 
 
   const getQty = (id: number) => {
@@ -100,6 +101,7 @@ export default function Cart() {
 
       alert("Order berhasil!");
       removeCart();
+      setShowPopup(false);
 
     } catch (error) {
       alert("Gagal menyimpan order");
@@ -109,7 +111,6 @@ export default function Cart() {
   useEffect(() => {
     fetchCart();
     fetchPromo();
-    // setCart(product ? Number(product) : null
 
     window.addEventListener('cartUpdated', fetchCart);
 
@@ -118,46 +119,125 @@ export default function Cart() {
     }
   }, [])
 
-  
   return (
-    <div className="border p-4 rounded">
-      <h2 className="font-bold text-lg mb-4">Cart</h2>
+    <>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-4">
+        <div className="bg-blue-600 text-white p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-lg">Pesanan</h2>
+            <span className="bg-white text-blue-600 px-2 py-1 rounded-full text-sm font-bold">
+              {products.length} item
+            </span>
+          </div>
+        </div>
 
-      {products.map((p) => (
-        <div key={p.id} className='flex justify-between items-center'>
-          <div className='flex gap-3 items-center'>
-            <p>{p.name}</p>
+        <div className="p-4 max-h-96 overflow-y-auto">
+          {products.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p>Keranjang kosong</p>
+              <p className="text-sm mt-2">Tap menu untuk menambah</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {products.map((p) => (
+                <div key={p.id} className="flex items-center justify-between border-b pb-3">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-800">{p.name}</p>
+                    <p className="text-sm text-gray-500">Rp {p.price.toLocaleString()}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 ml-4">
+                    <button className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-lg font-bold text-red-600 touch-manipulation active:bg-gray-300" onClick={() => updateQty(p.id, "decrease")}>
+                      -
+                    </button>
+                    <span className="w-6 text-center font-medium">{getQty(p.id)}</span>
+                    <button className="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full text-lg font-bold text-blue-600 touch-manipulation active:bg-blue-300" onClick={() => updateQty(p.id, "increase")}>
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-            <div className='flex items-center gap-2 mt-1'>
-              <button className='border px-2' onClick={() => updateQty(p.id, "decrease")}>-</button>
-              <span>{getQty(p.id)}</span>
-              <button className='border px-2' onClick={() => updateQty(p.id, "increase")}>+</button>
+        {products.length > 0 && (
+          <div className="p-4 bg-gray-50 border-t">
+            <div className="space-y-2 text-sm mb-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-medium text-gray-500">Rp {subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Diskon:</span>
+                <span className="font-medium text-green-600">- Rp {promoDiscount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tax 10%:</span>
+                <span className="font-medium text-red-500">Rp {tax.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                <span className='text-gray-600'>Total:</span>
+                <span className="text-blue-600">Rp {totalHarga.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <select className="w-full p-3 border border-gray-300 rounded-lg mb-3 text-sm touch-manipulation bg-white text-gray-600" onChange={(e) => setSelectedPromo(Number(e.target.value))} value={selectedPromo}>
+              <option value={0}>Pilih Promo</option>
+              {promos.map((promo) => (
+                <option key={promo.id} value={promo.discount}>
+                  {promo.name} - Rp{promo.discount}
+                </option>
+              ))}
+            </select>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button type='button' onClick={() => setShowPopup(true)} className="py-3 bg-green-600 text-white rounded-lg font-medium touch-manipulation active:bg-green-700">
+                Bayar
+              </button>
+              <button type='button' onClick={removeCart} className="py-3 bg-gray-200 text-gray-700 rounded-lg font-medium touch-manipulation active:bg-gray-300">
+                Clear
+              </button>
             </div>
           </div>
-
-          <p>Rp{p.price * getQty(p.id)}</p>
-        </div>
-      ))}
-
-      <hr className='my-2'/>
-
-      <p>Subtotal: {subtotal}</p>
-      <p>Tax 10%: {tax}</p>
-      <p>Total: {totalHarga}</p>
-
-      <div>
-        <select className='border px-2 py-1 w-full my-2' onChange={(e) => setSelectedPromo(Number(e.target.value))}>
-          <option value={0}>No Promo</option>
-          {promos.map((promo) => (
-            <option key={promo.id} value={promo.discount} className='text-gray-500'>
-              {promo.name} (Rp{promo.discount})
-            </option>
-          ))}
-        </select>
+        )}
       </div>
-      
-      <button type='button' onClick={handleSubmit} className='border  p-2 rounded mt-4 mr-2'>Order</button>
-      <button type='button' onClick={removeCart} className='border  p-2 rounded mt-4'>Clear Cart</button>
-    </div>
+
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowPopup(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-2xl font-bold mb-4 text-gray-600">Konfirmasi Pembayaran</h3>
+            
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-medium text-gray-500">Rp {subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-gray-600">Diskon:</span>
+                <span className="font-medium text-green-600">- Rp {promoDiscount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-gray-600">Tax 10%:</span>
+                <span className="font-medium text-red-500">Rp {tax.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between py-2 text-xl font-bold">
+                <span className='text-gray-600'>Total:</span>
+                <span className="text-blue-600">Rp {totalHarga.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setShowPopup(false)} className="py-3 bg-gray-200 text-gray-700 rounded-lg font-medium touch-manipulation active:bg-gray-300">
+                Batal
+              </button>
+              <button onClick={handleSubmit} className="py-3 bg-blue-600 text-white rounded-lg font-medium touch-manipulation active:bg-blue-700">
+                Bayar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

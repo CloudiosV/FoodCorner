@@ -19,11 +19,28 @@ export default function CategoryFilter({categories}: {categories: Category[]}) {
   }
 
   return (  
-    <div className="flex gap-2">
-      <button className={`px-3 py-1 rounded ${!currentCategory ? "bg-gray-800 text-white" : "border"}`} onClick={() => handleFilter()}>All</button>
+    <div className="flex gap-2 overflow-x-auto pb-2 touch-pan-x">
+      <button 
+        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap touch-manipulation
+          ${!currentCategory 
+            ? "bg-blue-600 text-white shadow-md" 
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`} 
+        onClick={() => handleFilter()}>
+        Semua Menu
+      </button>
 
       {categories.map((cat) => (
-        <button key={cat.id} className={`px-3 py-1 rounded ${currentCategory == String(cat.id) ? "bg-gray-800 text-white" : "border"}`} onClick={() => handleFilter(cat.id)}>{cat.name}</button>
+        <button 
+          key={cat.id} 
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap touch-manipulation
+            ${currentCategory == String(cat.id) 
+              ? "bg-blue-600 text-white shadow-md" 
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`} 
+          onClick={() => handleFilter(cat.id)}>
+          {cat.name}
+        </button>
       ))}
     </div>
   )
