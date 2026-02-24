@@ -2,46 +2,36 @@
 
 import type { Category } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-export default function CategoryFilter({categories}: {categories: Category[]}) {
+export default function CategoryFilter({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const currentCategory = searchParams.get('category');
 
   const handleFilter = (id?: number) => {
-    if(!id) {
-      router.push('/dashboard')
+    if (!id) {
+      router.push('/dashboard');
+    } else {
+      router.push(`/dashboard?category=${id}`);
     }
-    else {
-      router.push(`/dashboard?category=${id}`)
-    }
-  }
+  };
 
-  return (  
-    <div className="flex gap-2 overflow-x-auto pb-2 touch-pan-x">
-      <button 
-        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap touch-manipulation
-          ${!currentCategory 
-            ? "bg-blue-600 text-white shadow-md" 
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`} 
-        onClick={() => handleFilter()}>
-        Semua Menu
-      </button>
+  return (
+    <ScrollArea className="w-full whitespace-nowrap">
+      <div className="flex gap-2 pb-2">
+        <Button variant={!currentCategory ? "default" : "outline"} size="sm" onClick={() => handleFilter()} className="rounded-full">
+          Semua Menu
+        </Button>
 
-      {categories.map((cat) => (
-        <button 
-          key={cat.id} 
-          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap touch-manipulation
-            ${currentCategory == String(cat.id) 
-              ? "bg-blue-600 text-white shadow-md" 
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`} 
-          onClick={() => handleFilter(cat.id)}>
-          {cat.name}
-        </button>
-      ))}
-    </div>
-  )
+        {categories.map((cat) => (
+          <Button key={cat.id} variant={currentCategory == String(cat.id) ? "default" : "outline"} size="sm" onClick={() => handleFilter(cat.id)} className="rounded-full">
+            {cat.name}
+          </Button>
+        ))}
+      </div>
+      <ScrollBar orientation="horizontal" className="invisible" />
+    </ScrollArea>
+  );
 }
