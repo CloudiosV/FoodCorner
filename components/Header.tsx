@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 export default function Header() {
   const pathname = usePathname();
@@ -16,17 +23,45 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-black text-white p-4 flex gap-6">
-      {!pathname.startsWith("/orders") && (
-        <div className="flex gap-4">
-          <Link href="/sales">Sales</Link>
-          <Link href="/products">Products</Link>
-          <Link href="/category">Category</Link>
-          <Link href="/promo">Promo</Link>
-        </div>
-      )}
+    <header className="border-b bg-background">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <NavigationMenu>
+          <NavigationMenuList>
+            {!pathname.startsWith("/orders") && (
+              <>
+                <NavigationMenuItem>
+                  <Link href="/sales" className={navigationMenuTriggerStyle()}>
+                    Sales
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/products" className={navigationMenuTriggerStyle()}>
+                    Products
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/category" className={navigationMenuTriggerStyle()}>
+                    Category
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/promo" className={navigationMenuTriggerStyle()}>
+                    Promo
+                  </Link>
+                </NavigationMenuItem>
+              </>
+            )}
+          </NavigationMenuList>
+        </NavigationMenu>
 
-      <button onClick={handleLogout} className="ml-auto text-red-400">Logout</button>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </div>
     </header>
   );
 }

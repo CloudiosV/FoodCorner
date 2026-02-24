@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import UpdateStatus from "./updateStatus";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Clock, Utensils } from "lucide-react";
 
-const getSales = async (search?: string) => {
-  const searchNumber = parseFloat(search ?? "");
+const getSales = async () => {
   return await prisma.sales.findMany({
-    where: search ? {
-      queue_number: {
-        equals: searchNumber,
+    where: {
+      status: {
+        not: "done"
       }
-    } : undefined,
-
+    },
     include: {
       detail_sales: {
         include: {
@@ -23,63 +25,74 @@ const getSales = async (search?: string) => {
   })
 }
 
-const Kitchen = async ({searchParams}: {searchParams?: Promise<{search?: string}>}) => {
-    const params = await searchParams;
-    const search = params?.search ?? "";
-    const sales = await getSales(search);
+const Kitchen = async () => {
+    const sales = await getSales();
 
-  return (  
-    <div className="p-4 max-w-4xl mx-auto">
-      <form className="mb-6" method="GET">
-        <input type="text" name="search" defaultValue={search} placeholder="Search queue number..." className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-      </form>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sales.map((sale) => (
-          <div key={sale.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
-            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-              <span className="font-bold text-lg text-gray-500">Queue #{sale.queue_number}</span>
-              <span className={`
-                px-3 py-1 rounded-full text-sm font-medium
-                ${sale.status === "pending" 
-                  ? "bg-yellow-100 text-yellow-800" 
-                  : "bg-green-100 text-green-800"
-                }
-              `}>
-                {sale.status === "Pending" ? "Waiting" : "Done"}
-              </span>
+    return (  
+        <div className="p-6 max-w-7xl mx-auto">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Utensils className="h-6 w-6"/>
+                    Kitchen Queue
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                    Manage and track order progress
+                </p>
             </div>
 
-            <div className="p-4">
-              <h3 className="text-sm font-semibold text-gray-500 mb-2">Detail Order:</h3>
-              <div className="space-y-2">
-                {sale.detail_sales.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700">{item.product.name}</span>
-                    <span className="bg-gray-100 px-2 py-1 rounded text-gray-600">
-                      x{item.qty}
-                    </span>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sales.map((sale) => (
+                    <Card key={sale.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                        <CardHeader className="bg-muted/50 p-4 flex flex-row items-center justify-between space-y-0">
+                            <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-semibold">Queue #{sale.queue_number}</span>
+                            </div>
+                            <Badge variant={sale.status === "pending" ? "secondary" : "default"}>
+                                {sale.status === "pending" ? "Waiting" : "Processing"}
+                            </Badge>
+                        </CardHeader>
+
+                        <CardContent className="p-4">
+                            <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                                Order Details:
+                            </h3>
+                            <div className="space-y-2">
+                                {sale.detail_sales.map((item) => (
+                                    <div key={item.id} className="flex justify-between items-center text-sm">
+                                        <span className="text-foreground">{item.product.name}</span>
+                                        <Badge variant="outline" className="ml-2">
+                                            x{item.qty}
+                                        </Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+
+                        <Separator/>
+
+                        <CardFooter className="p-4">
+                            <UpdateStatus sale={sale} />
+                        </CardFooter>
+                    </Card>
                 ))}
-              </div>
-            </div>
 
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-              <UpdateStatus sale={sale} />
+                {sales.length === 0 && (
+                  <Card className="col-span-full">
+                      <CardContent className="flex flex-col items-center justify-center py-12">
+                          <div className="rounded-full bg-muted p-3 mb-4">
+                              <Clock className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <p className="text-lg font-medium text-center">No Queue Available</p>
+                          <p className="text-sm text-muted-foreground text-center mt-1 max-w-sm">
+                              All orders have been completed. New orders will appear here when customers place them.
+                          </p>
+                      </CardContent>
+                  </Card>
+                )}
             </div>
-          </div>
-        ))}
-
-        {sales.length === 0 && (
-          <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
-            <p className="text-lg">There is no Queue</p>
-            <p className="text-sm mt-1">Silahkan cari dengan nomor antrian lain</p>
-            <p className="text-sm mt-1">Please search with another queue number</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+        </div>
+    )
 }
 
 export default Kitchen

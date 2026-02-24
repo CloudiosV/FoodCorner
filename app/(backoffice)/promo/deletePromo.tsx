@@ -2,52 +2,74 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 type Promo = {
-  id: number;
-  name: string;
-  discount: number;
+    id: number;
+    name: string;
+    discount: number;
 }
 
-const DeletePromo = ({promo}: {promo: Promo}) => {
+const DeletePromo = ({ promo }: { promo: Promo }) => {
     const [isOpen, setIsOpen] = useState(false);
-
-    const route = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleDelete = async (promo_id: number) => {
-        await axios.delete(`/api/promo/${promo_id}`)
-        route.refresh();
-        setIsOpen(false);
-    }
+        try {
+            setIsLoading(true);
+            await axios.delete(`/api/promo/${promo_id}`);
+            router.refresh();
+            setIsOpen(false);
+        } catch (error) {
+            console.error("Failed to delete:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    const handleModal = () => {
-        setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={handleModal}>
-        Delete Promo
-      </button>
+    return (
+        <>
+            <Button variant="destructive" size="sm" onClick={() => setIsOpen(true)} className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                Delete
+            </Button>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Are you sure to delete {promo.name}?</h3>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Delete Promo</DialogTitle>
+                    </DialogHeader>
 
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  No
-                </button>
-                <button type="button" onClick={() => handleDelete(promo.id)} className="px-4 py-2 bg-blue-600 text-white rounded">
-                  Yes
-                </button>
-              </div>
+                    <div className="py-4">
+                        <p className="text-center text-muted-foreground">
+                            Are you sure you want to delete <span className="font-semibold">{promo.name}</span>?
+                        </p>
+                        <p className="text-center text-sm text-muted-foreground mt-2">
+                            This action cannot be undone.
+                        </p>
+                    </div>
 
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={() => handleDelete(promo.id)} disabled={isLoading}>
+                            {isLoading ? "Deleting..." : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-export default DeletePromo
+export default DeletePromo;

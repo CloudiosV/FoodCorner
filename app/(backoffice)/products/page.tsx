@@ -1,21 +1,27 @@
-// import { PrismaClient } from "@prisma/client";
+// app/products/page.tsx
 import { prisma } from "@/lib/prisma";
 import AddProduct from "./addProduct";
 import DeleteProduct from "./deleteProduct";
 import UpdateProduct from "./updateProduct";
-// import {}
-
-// const prisma = new PrismaClient();
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const getProducts = async (search?: string) => {
   return await prisma.product.findMany({
-    where: search? {
+    where: search ? {
       name: {
         contains: search,
         mode: "insensitive"
       }
-    } :undefined,
-
+    } : undefined,
     select: {
       id: true,
       name: true,
@@ -36,7 +42,7 @@ const getCategory = async () => {
   return await prisma.category.findMany();
 }
 
-const Product = async ({searchParams}: {searchParams?: Promise<{ search?: string }>}) => {
+const Product = async ({ searchParams }: { searchParams?: Promise<{ search?: string }> }) => {
   const params = await searchParams;
   const search = params?.search ?? "";
 
@@ -46,47 +52,60 @@ const Product = async ({searchParams}: {searchParams?: Promise<{ search?: string
   ]);
 
   return (
-    <div>
-      <div className="mb-2">
-        <AddProduct categories={categories}/>
-      </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Products</CardTitle>
+        <AddProduct categories={categories} />
+      </CardHeader>
+      <CardContent>
+        <form method="GET" className="mb-4">
+          <Input type="text" name="search" defaultValue={search} placeholder="Search products..." className="max-w-sm"/>
+        </form>
 
-      <form className="mb-3" method="GET">
-        <input type="text" name="search" defaultValue={search} placeholder="Search Product..." className="border px-3 py-2 rounded w-64"/> 
-      </form>
-
-      <table className="w-full border border-gray-300 border-collapse">
-        <thead className="">
-          <tr>
-            <th className="border px-3 py-2 text-left">ID</th>
-            <th className="border px-3 py-2 text-left">Name</th>
-            <th className="border px-3 py-2 text-left">Price</th>
-            <th className="border px-3 py-2 text-left">Category</th>
-            <th className="border px-3 py-2 text-left">Image</th>
-            <th className="border px-3 py-2 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product, index) => (
-            <tr key={product.id} className="hover:bg-gray-50">
-              <td className="border px-3 py-2">{index + 1}</td>
-              <td className="border px-3 py-2">{product.name}</td>
-              <td className="border px-3 py-2">{product.price}</td>
-              <td className="border px-3 py-2">{product.category.name}</td>
-              <td className="border px-3 py-2">
-                {product.image && (
-                  <img src={`/uploads/${product.image}`} alt={product.name} className="w-16   h-16 object-cover rounded"/>
-                )}
-              </td>
-              <td className="border px-3 py-2 text-center flex gap-2 justify-center">
-                <UpdateProduct categories={categories} product={product}/>
-                <DeleteProduct product={product}/>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Image</TableHead>
+                <TableHead className="text-center">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((product, index) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>Rp {product.price.toLocaleString()}</TableCell>
+                  <TableCell>{product.category.name}</TableCell>
+                  <TableCell>
+                    {product.image && (
+                      <img src={`/uploads/${product.image}`} alt={product.name} className="w-12 h-12 object-cover rounded-md"/>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 justify-center">
+                      <UpdateProduct categories={categories} product={product} />
+                      <DeleteProduct product={product} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {products.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                    No products found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

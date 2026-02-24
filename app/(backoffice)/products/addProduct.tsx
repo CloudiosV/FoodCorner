@@ -3,94 +3,124 @@ import { useState, SyntheticEvent } from "react";
 import type { Category } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus } from "lucide-react";
 
-const AddProduct = ({categories}: {categories: Category[]}) => {
+const AddProduct = ({ categories }: { categories: Category[] }) => {
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [category, setCategory] = useState("");
     const [image, setImage] = useState<File | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const route = useRouter();
+    const router = useRouter();
 
     const handleSubmit = async (e: SyntheticEvent) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("price", price);
-        formData.append("category_id", category);
-        if(image) {
-          formData.append("image", image);
+        try {
+            setIsLoading(true);
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("price", price);
+            formData.append("category_id", category);
+            if(image) {
+                formData.append("image", image);
+            }
+
+            await axios.post('/api/products', formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            setName("");
+            setPrice("");
+            setCategory("");
+            setImage(null);
+            router.refresh();
+            setIsOpen(false);
+        } catch (error) {
+            console.error("Failed to add product:", error);
+        } finally {
+            setIsLoading(false);
         }
+    };
 
-        await axios.post('/api/products', formData, {
-          headers: {"Content-Type": "multipart/form-data"}
-        });
+    return (
+        <>
+            <Button onClick={() => setIsOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Product
+            </Button>
 
-        setName("");
-        setPrice("");
-        setCategory("");
-        setImage(null);
-        route.refresh();
-        setIsOpen(false);
-    }
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Add New Product</DialogTitle>
+                    </DialogHeader>
 
-    const handleModal = () => {
-        setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-gray-800 text-white rounded" onClick={handleModal}>
-        Add New
-      </button>
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Product Name</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter product name" required/>
+                            </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Add New Product</h3>
+                            <div className="space-y-2">
+                                <Label htmlFor="price">Price</Label>
+                                <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Enter price" required/>
+                            </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Product Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Product Name"/>
-              </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="category">Category</Label>
+                                <Select value={category} onValueChange={setCategory} required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((cat) => (
+                                            <SelectItem key={cat.id} value={cat.id.toString()}>
+                                                {cat.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Price</label>
-                <input type="text" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Price"/>
-              </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="image">Image</Label>
+                                <Input id="image" type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="cursor-pointer"/>
+                            </div>
+                        </div>
 
-              <div className="mb-4">
-                <label className="block font-bold mb-1">Category</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border rounded px-3 py-2">
-                  <option value="" disabled>
-                    Please select a category
-                  </option>
-                  {categories.map((category) => (
-                    <option value={category.id} key={category.id}>{category.name}</option>
-                  ))}
-                </select>
-              </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Saving..." : "Save"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-              <div>
-                <label className="block font-bold mb-1">Image</label>
-                <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="w-full"/>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  Close
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default AddProduct
+export default AddProduct;

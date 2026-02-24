@@ -2,6 +2,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Eye } from "lucide-react";
 
 type Sales = {
     id: number;
@@ -11,7 +21,7 @@ type Sales = {
 }
 
 type DetailItem = {
-    id : number;
+    id: number;
     qty: number;
     price: number;
     product: {
@@ -19,57 +29,76 @@ type DetailItem = {
     }
 }
 
-const DetailSale = ({sale}: {sale: Sales}) => {
+const DetailSale = ({ sale }: { sale: Sales }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [details, setDetails] = useState<DetailItem[]>([])
+    const [details, setDetails] = useState<DetailItem[]>([]);
 
     const handleModal = async () => {
-        if(!isOpen) {
-            const res = await axios.get(`api/sales/${sale.id}`)
-            setDetails(res.data.detail_sales)
+        if (!isOpen) {
+            const res = await axios.get(`/api/sales/${sale.id}`);
+            setDetails(res.data.detail_sales);
         }
-
         setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-yellow-500 text-white rounded" onClick={handleModal}>
-        Detail
-      </button>
+    };
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Detail Data {sale.id}</h3>
+    const subtotal = details.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-                {details.map((item) => (
-                    <div key={item.id} className="flex justify-between">
-                        <span>{item.product.name} x{item.qty}</span>
+    return (
+        <>
+            <Button variant="outline" size="sm" onClick={handleModal} className="gap-2">
+                <Eye className="h-4 w-4" />
+                Detail
+            </Button>
 
-                        <span>{item.price * item.qty}</span>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Sale Details #{sale.id}</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {details.map((item) => (
+                            <div key={item.id} className="flex justify-between items-center">
+                                <div>
+                                    <p className="font-medium">{item.product.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Rp {item.price.toLocaleString()} x {item.qty}
+                                    </p>
+                                </div>
+                                <span className="font-medium">
+                                    Rp {(item.price * item.qty).toLocaleString()}
+                                </span>
+                            </div>
+                        ))}
+
+                        <Separator />
+
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>Rp {subtotal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Discount</span>
+                                <span className="text-red-600">- {sale.discount}%</span>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between font-bold">
+                                <span>Total</span>
+                                <span>Rp {sale.final_price.toLocaleString()}</span>
+                            </div>
+                        </div>
                     </div>
-                ))}
 
-                <hr className="my-3"/>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={handleModal}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-                <div className="flex justify-between">
-                    <span>Discount</span>
-                    <span>{sale.discount}</span>
-                </div>
-
-                <div className="flex justify-between">
-                    <span>Total</span>
-                    <span>{sale.final_price}</span>
-                </div>
-
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  Close
-                </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default DetailSale
+export default DetailSale;

@@ -2,69 +2,87 @@
 import { useState, SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Pencil } from "lucide-react";
 
 type Promo = {
-  id: number;
-  name: string;
-  discount: number;
+    id: number;
+    name: string;
+    discount: number;
 }
 
-const UpdatePromo = ({promo}: {promo: Promo}) => {
+const UpdatePromo = ({ promo }: { promo: Promo }) => {
     const [name, setName] = useState(promo.name);
-    const [discount, setDiscount] = useState(promo.discount);
+    const [discount, setDiscount] = useState(promo.discount.toString());
     const [isOpen, setIsOpen] = useState(false);
-
-    const route = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleUpdate = async (e: SyntheticEvent) => {
         e.preventDefault();
-        await axios.patch(`/api/promo/${promo.id}`, {
-            name: name,
-            discount: Number(discount),
-        });
-        route.refresh();
-        setIsOpen(false);
-    }
+        try {
+            setIsLoading(true);
+            await axios.patch(`/api/promo/${promo.id}`, {
+                name,
+                discount: Number(discount)
+            });
+            router.refresh();
+            setIsOpen(false);
+        } catch (error) {
+            console.error("Failed to update:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    const handleModal = () => {
-        setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-yellow-500 text-white rounded" onClick={handleModal}>
-        Edit
-      </button>
+    return (
+        <>
+            <Button variant="outline" size="sm" onClick={() => setIsOpen(true)} className="gap-2">
+                <Pencil className="h-4 w-4" />
+                Edit
+            </Button>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Update {promo.name}</h3>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Update Promo</DialogTitle>
+                    </DialogHeader>
 
-            <form onSubmit={handleUpdate}>
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Promo Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Promo Name"/>
-              </div>
+                    <form onSubmit={handleUpdate}>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Promo Name</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter promo name" required/>
+                            </div>
 
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Discount</label>
-                <input type="number" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full border rounded px-3 py-2" placeholder="Promo Discount"/>
-              </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="discount">Discount (%)</Label>
+                                <Input id="discount" type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="Enter discount percentage" required/>
+                            </div>
+                        </div>
 
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  Close
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
-                  Update
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Updating..." : "Update"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-export default UpdatePromo
+export default UpdatePromo;

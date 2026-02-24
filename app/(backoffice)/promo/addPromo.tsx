@@ -2,65 +2,83 @@
 import { useState, SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus } from "lucide-react";
 
 const AddPromo = () => {
     const [name, setName] = useState("");
     const [discount, setDiscount] = useState("");
     const [isOpen, setIsOpen] = useState(false);
-
-    const route = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleSubmit = async (e: SyntheticEvent) => {
         e.preventDefault();
-        await axios.post('/api/promo', {
-            name: name,
-            discount: Number(discount)
-        })
-        setName("");
-        setDiscount("");
-        route.refresh();
-        setIsOpen(false);
-    }
+        try {
+            setIsLoading(true);
+            await axios.post('/api/promo', {
+                name,
+                discount: Number(discount)
+            });
+            setName("");
+            setDiscount("");
+            router.refresh();
+            setIsOpen(false);
+        } catch (error) {
+            console.error("Failed to add promo:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    const handleModal = () => {
-        setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-gray-800 text-white rounded" onClick={handleModal}>
-        Add New
-      </button>
+    return (
+        <>
+            <Button onClick={() => setIsOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Promo
+            </Button>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Add New Promo</h3>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Add New Promo</DialogTitle>
+                    </DialogHeader>
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Promo Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Promo Name"/>
-              </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Promo Name</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter promo name" required/>
+                            </div>
 
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Discount</label>
-                <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Promo Discount"/>
-              </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="discount">Discount (%)</Label>
+                                <Input id="discount" type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="Enter discount percentage" required/>
+                            </div>
+                        </div>
 
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  Close
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Saving..." : "Save"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-export default AddPromo
+export default AddPromo;

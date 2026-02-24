@@ -2,64 +2,92 @@ import { prisma } from "@/lib/prisma";
 import AddPromo from "./addPromo";
 import DeletePromo from "./deletePromo";
 import UpdatePromo from "./updatePromo";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const getPromo = async (search?: string) => {
   return prisma.promo.findMany({
-  where: search
-  ? {
-    name: {
-      contains: search,
-      mode: "insensitive"
-    }
-  } :undefined,
-
+    where: search ? {
+      name: {
+        contains: search,
+        mode: "insensitive"
+      }
+    } : undefined,
     select: {
       id: true,
-      discount: true,
       name: true,
+      discount: true,
     },
   });
 };
 
-const Promo = async ({searchParams}: {searchParams?: Promise<{search?: string}> }) => {
+const Promo = async ({ searchParams }: { searchParams?: Promise<{ search?: string }> }) => {
   const params = await searchParams;
   const search = params?.search ?? "";
   const promos = await getPromo(search);
 
   return (
-    <div>
-      <div className="mb-2">
-        <AddPromo/>
-      </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Promos</CardTitle>
+        <AddPromo />
+      </CardHeader>
 
-      <form className="mb-3" method="GET">
-        <input type="text" name="search" defaultValue={search} placeholder="Search Promo..." className="border px-3 py-2 rounded w-64"/> 
-      </form>
+      <CardContent>
+        <form method="GET" className="mb-4">
+          <Input 
+            type="text" 
+            name="search" 
+            defaultValue={search} 
+            placeholder="Search promos..." 
+            className="max-w-sm"
+          />
+        </form>
 
-      <table className="w-full border border-gray-300 border-collapse">
-        <thead>
-          <tr>
-            <th className="border px-3 py-2">ID</th>
-            <th className="border px-3 py-2">Name</th>
-            <th className="border px-3 py-2">Discount</th>
-            <th className="border px-3 py-2 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {promos.map((promo, index) => (
-            <tr key={promo.id}>
-              <td className="border px-3 py-2">{index + 1}</td>
-              <td className="border px-3 py-2">{promo.name}</td>
-              <td className="border px-3 py-2">{promo.discount}</td>
-              <td className="border px-3 py-2 text-center flex gap-2 justify-center">
-                <UpdatePromo promo={promo} />
-                <DeletePromo promo={promo} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Discount (%)</TableHead>
+                <TableHead className="text-center">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {promos.map((promo, index) => (
+                <TableRow key={promo.id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell>{promo.name}</TableCell>
+                  <TableCell>{promo.discount}%</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 justify-center">
+                      <UpdatePromo promo={promo} />
+                      <DeletePromo promo={promo} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {promos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                    No promos found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

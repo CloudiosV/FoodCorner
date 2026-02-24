@@ -2,61 +2,77 @@
 import { useState, SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Pencil } from "lucide-react";
 
 type Category = {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
-const UpdateCategory = ({category}: {category: Category}) => {
+const UpdateCategory = ({ category }: { category: Category }) => {
     const [name, setName] = useState(category.name);
     const [isOpen, setIsOpen] = useState(false);
-
-    const route = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleUpdate = async (e: SyntheticEvent) => {
         e.preventDefault();
-        await axios.patch(`/api/category/${category.id}`, {
-            name: name,
-        });
-        route.refresh();
-        setIsOpen(false);
-    }
+        try {
+            setIsLoading(true);
+            await axios.patch(`/api/category/${category.id}`, { name });
+            router.refresh();
+            setIsOpen(false);
+        } catch (error) {
+            console.error("Failed to update:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    const handleModal = () => {
-        setIsOpen(!isOpen);
-    }
-  return (  
-    <div>
-      <button className="px-4 py-2 bg-yellow-500 text-white rounded" onClick={handleModal}>
-        Edit
-      </button>
+    return (
+        <>
+            <Button variant="outline" size="sm" onClick={() => setIsOpen(true)} className="gap-2">
+                <Pencil className="h-4 w-4" />
+                Edit
+            </Button>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-600">
-          <div className="bg-white w-full max-w-md rounded p-6">
-            <h3 className="font-bold text-lg mb-4">Update {category.name}</h3>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Update Category</DialogTitle>
+                    </DialogHeader>
 
-            <form onSubmit={handleUpdate}>
-              <div className="mb-3">
-                <label className="block font-bold mb-1">Category Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Product Name"/>
-              </div>
+                    <form onSubmit={handleUpdate}>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Category Name</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter category name" required/>
+                            </div>
+                        </div>
 
-              <div className="flex justify-end gap-2">
-                <button type="button" className="px-4 py-2 border rounded" onClick={handleModal}>
-                  Close
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
-                  Update
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Updating..." : "Update"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 
-export default UpdateCategory
+export default UpdateCategory;
