@@ -36,8 +36,14 @@ export default async function DashboardPage({searchParams}: {searchParams?: Prom
           <ProductList products={products} />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="hidden lg:block lg:col-span-1">
           <div className="sticky top-4">
+            <Cart />
+          </div>
+        </div>
+
+        <div className="lg:hidden fixed bottom-0 left-0 right-0">
+          <div className="max-h-[70v]">
             <Cart />
           </div>
         </div>
