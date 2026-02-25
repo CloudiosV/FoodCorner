@@ -50,7 +50,7 @@ export default function ProductList({ products }: { products: Product[] }) {
               {product.name}
             </h3>
             <p className="text-primary font-bold text-sm md:text-base mt-1">
-              Rp {product.price.toLocaleString()}
+              Rp {product.price.toLocaleString('id-ID')}
             </p>
             <Badge variant="secondary" className="mt-2 text-xs">
               {product.category.name}
