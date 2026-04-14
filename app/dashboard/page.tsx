@@ -33,7 +33,7 @@ export default async function DashboardPage({searchParams}: {searchParams?: Prom
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Menu Makanan</h1>
             <CategoryFilter categories={categories} />
           </div>
-          <ProductList products={products} />
+          <ProductList products={products as any} />
         </div>
 
         <div className="hidden lg:block lg:col-span-1">
