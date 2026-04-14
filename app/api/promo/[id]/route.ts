@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Promo } from "@prisma/client";
 
-export const PATCH = async (request: Request, context: {params: {id: string}}) => {
+export const PATCH = async (request: Request, context: {params: Promise<{id: string}>}) => {
     const { id } = await context.params;
     const body: Promo = await request.json();
     const promo = await prisma.promo.update({
@@ -18,7 +18,7 @@ export const PATCH = async (request: Request, context: {params: {id: string}}) =
     return NextResponse.json(promo, {status: 200});
 }
 
-export const DELETE = async (request: Request, context: {params: {id: string}}) => {
+export const DELETE = async (request: Request, context: {params: Promise<{id: string}>}) => {
     const { id } = await context.params;
     const promo = await prisma.promo.delete({
         where:{

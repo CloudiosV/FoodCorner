@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const PATCH = async (request: Request, context: {params: {id: string}}) => {
+export const PATCH = async (request: Request, context: {params: Promise<{id: string}>}) => {
   try {
     const { id } = await context.params;
     const { status } = await request.json();

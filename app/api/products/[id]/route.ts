@@ -4,7 +4,7 @@ import type { Product } from "@prisma/client";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-export const PATCH = async (request: Request, context: {params: {id: string}}) => {
+export const PATCH = async (request: Request, context: {params: Promise<{id: string}>}) => {
     const { id } = await context.params;
     const data = await request.formData();
 
@@ -40,7 +40,7 @@ export const PATCH = async (request: Request, context: {params: {id: string}}) =
     return NextResponse.json(product, {status: 200});
 }
 
-export const DELETE = async (request: Request, context: {params: {id: string}}) => {
+export const DELETE = async (request: Request, context: {params: Promise<{id: string}>}) => {
     const { id } = await context.params;
     const product = await prisma.product.delete({
         where:{
