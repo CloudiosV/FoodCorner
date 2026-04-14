@@ -1,0 +1,35 @@
+name: Deploy Next.js to VPS
+
+# Kapan aksi ini dijalankan? Saat ada kodingan baru yang di-push ke branch 'main'
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Eksekusi Perintah di VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 43.157.229.130
+          username: cloudio
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22 # Ganti jika port SSH VPS kamu bukan 22
+          script: |
+            # Masuk ke folder project
+            cd /home/cloudio/project-nextjs
+            
+            # Tarik kodingan terbaru dari GitHub
+            git pull origin main
+            
+            # Install package baru (jika ada)
+            npm install
+            
+            # Build ulang Next.js
+            npm run build
+            
+            # Restart aplikasi di PM2 agar kodingan baru langsung aktif
+            pm2 restart next-app
