@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Category } from "@prisma/client";
 import AddCategory from "./addCategory";
 import DeleteCategory from "./deleteCategory";
 import UpdateCategory from "./updateCategory";
