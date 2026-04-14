@@ -62,7 +62,7 @@ const Category = async ({ searchParams }: { searchParams?: Promise<{ search?: st
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((category, index) => (
+              {categories.map((category: Category, index: number) => (
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{category.name}</TableCell>
