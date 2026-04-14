@@ -88,8 +88,8 @@ const Product = async ({ searchParams }: { searchParams?: Promise<{ search?: str
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2 justify-center">
-                      <UpdateProduct categories={categories} product={product} />
-                      <DeleteProduct product={product} />
+                      <UpdateProduct categories={categories} product={{ ...product, image: product.image || "" } as any} />
+                      <DeleteProduct product={{ ...product, image: product.image || "" } as any} />
                     </div>
                   </TableCell>
                 </TableRow>
