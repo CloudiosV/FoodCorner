@@ -19,7 +19,7 @@ export const GET = async (request: Request, context: {params: Promise<{id: strin
     return NextResponse.json(sales, {status: 200});
 }
 
-export const DELETE = async (request: Request, context: {params: {id: string}}) => {
+export const DELETE = async (request: Request, context: {params: Promise<{id: string}>}) => {
     const { id } = await context.params;
     const sales = await prisma.sales.delete({
         where:{
