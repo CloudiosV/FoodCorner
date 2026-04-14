@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import type { Category } from "@prisma/client";
 import AddCategory from "./addCategory";
 import DeleteCategory from "./deleteCategory";
 import UpdateCategory from "./updateCategory";
@@ -62,7 +61,7 @@ const Category = async ({ searchParams }: { searchParams?: Promise<{ search?: st
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((category: Category, index: number) => (
+              {categories.map((category: { id: number, name: string }, index: number) => (
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{category.name}</TableCell>
